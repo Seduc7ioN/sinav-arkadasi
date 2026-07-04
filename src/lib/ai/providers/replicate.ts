@@ -1,6 +1,12 @@
 import { BaseAIProvider } from "./interface"
 import type { AIProviderConfig } from "./schema"
 
+const REPLICATE_MODELS = {
+  removeBg: "cb321abf41b7f5e27cb5a5f0e2d7f7d3f",
+  generateBg: "39ed52f2a78e934b3ba5e2a89f5f1c8b",
+  enhance: "ef1e5d5c5b5a5f5e5d5c5b5a5f5e5d5c",
+}
+
 export class ReplicateProvider extends BaseAIProvider {
   id = "replicate"
   name = "Replicate"
@@ -13,7 +19,7 @@ export class ReplicateProvider extends BaseAIProvider {
     return !!this.config.apiKey
   }
 
-  private async runModel(model: string, input: Record<string, unknown>) {
+  private async runModel(model: string, input: Record<string, unknown>): Promise<string> {
     const response = await this.fetchWithTimeout(
       "https://api.replicate.com/v1/predictions",
       {
@@ -23,10 +29,18 @@ export class ReplicateProvider extends BaseAIProvider {
           "Content-Type": "application/json",
           Prefer: "wait",
         },
-        body: JSON.stringify({ version: model, input }),
+        body: JSON.stringify({
+          version: model,
+          input,
+        }),
       },
       60000
     )
+
+    if (!response.ok) {
+      const err = await response.text()
+      throw new Error(`Replicate API error: ${err}`)
+    }
 
     const prediction = await response.json()
 
@@ -38,8 +52,7 @@ export class ReplicateProvider extends BaseAIProvider {
     }
 
     if (prediction.status === "processing" || prediction.status === "starting") {
-      const result = await this.pollPrediction(prediction.id)
-      return result
+      return await this.pollPrediction(prediction.id)
     }
 
     throw new Error(`Replicate prediction failed: ${prediction.error || prediction.status}`)
@@ -55,7 +68,14 @@ export class ReplicateProvider extends BaseAIProvider {
           headers: { Authorization: `Bearer ${this.config.apiKey}` },
         }
       )
+
+      if (!response.ok) {
+        const err = await response.text()
+        throw new Error(`Replicate poll failed: ${err}`)
+      }
+
       const prediction = await response.json()
+
       if (prediction.status === "succeeded") {
         const outputUrl = Array.isArray(prediction.output)
           ? prediction.output[0]
@@ -66,14 +86,13 @@ export class ReplicateProvider extends BaseAIProvider {
         throw new Error(`Replicate prediction failed: ${prediction.error}`)
       }
     }
-    throw new Error("Replicate prediction timed out")
+    throw new Error("Replicate prediction timed out after 60s")
   }
 
   async removeBackground(input: { imageUrl: string }) {
-    const url = await this.runModel(
-      "cb321abf41b7f5e27cb5a5f0e2d7f7d3f1d1f5c5b5a5f5e5d5c5b5a5f5e5d5c",
-      { image: input.imageUrl }
-    )
+    const url = await this.runModel(REPLICATE_MODELS.removeBg, {
+      image: input.imageUrl,
+    })
     return { url, format: "png" }
   }
 
@@ -82,18 +101,19 @@ export class ReplicateProvider extends BaseAIProvider {
     prompt?: string
     style?: string
   }) {
-    const url = await this.runModel(
-      "39ed52f2a78e934b3ba5e2a89f5f1c8b5c5b5a5f5e5d5c5b5a5f5e5d5c5b5a5f",
-      {
-        image: input.imageUrl,
-        prompt: input.prompt || "professional studio background, soft lighting",
-      }
-    )
+    const url = await this.runModel(REPLICATE_MODELS.generateBg, {
+      image: input.imageUrl,
+      prompt: input.prompt || "professional studio background, soft lighting",
+    })
     return { url, format: "png" }
   }
 
   async enhanceImage(input: { imageUrl: string }) {
-    return { url: input.imageUrl, format: "png" }
+    const url = await this.runModel(REPLICATE_MODELS.enhance, {
+      image: input.imageUrl,
+      scale: 2,
+    })
+    return { url, format: "png" }
   }
 
   async generateDescription(input: {
