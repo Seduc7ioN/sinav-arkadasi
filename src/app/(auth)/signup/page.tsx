@@ -18,6 +18,12 @@ import {
 import { KVKKConsent } from "@/components/shared/kvkk-consent"
 import { Sparkles } from "lucide-react"
 
+function getSupabase() {
+  const client = createClient()
+  if (!client) throw new Error("Supabase bağlantısı kurulamadı")
+  return client
+}
+
 export default function SignupPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -26,7 +32,7 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null)
   const [consented, setConsented] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
+  const [supabase] = useState(getSupabase)
 
   async function handleEmailSignup(e: React.FormEvent) {
     e.preventDefault()

@@ -7,8 +7,21 @@ import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Sparkles } from "lucide-react"
+
+function getSupabase() {
+  const client = createClient()
+  if (!client) throw new Error("Supabase bağlantısı kurulamadı")
+  return client
+}
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -16,7 +29,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
-  const supabase = createClient()
+  const [supabase] = useState(getSupabase)
 
   async function handleEmailLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -64,9 +77,9 @@ export default function LoginPage() {
 
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-          <CardTitle className="text-xl">Welcome back</CardTitle>
+          <CardTitle className="text-xl">Hoş Geldiniz</CardTitle>
           <CardDescription>
-            Sign in to your account to continue
+            Devam etmek için hesabınıza giriş yapın
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -94,7 +107,7 @@ export default function LoginPage() {
                 fill="#EA4335"
               />
             </svg>
-            Continue with Google
+            Google ile Devam Et
           </Button>
 
           <div className="relative">
@@ -103,25 +116,25 @@ export default function LoginPage() {
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-background px-2 text-muted-foreground">
-                Or continue with email
+                Veya e-posta ile giriş yapın
               </span>
             </div>
           </div>
 
           <form onSubmit={handleEmailLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">E-posta</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder="ornek@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Şifre</Label>
               <Input
                 id="password"
                 type="password"
@@ -131,19 +144,20 @@ export default function LoginPage() {
                 required
               />
             </div>
-            {error && (
-              <p className="text-sm text-destructive">{error}</p>
-            )}
+            {error && <p className="text-sm text-destructive">{error}</p>}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Signing in..." : "Sign in"}
+              {loading ? "Giriş yapılıyor..." : "Giriş Yap"}
             </Button>
           </form>
         </CardContent>
         <CardFooter className="justify-center">
           <p className="text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
-            <Link href="/signup" className="font-medium text-primary hover:underline">
-              Sign up
+            Hesabınız yok mu?{" "}
+            <Link
+              href="/signup"
+              className="font-medium text-primary hover:underline"
+            >
+              Kaydol
             </Link>
           </p>
         </CardFooter>
