@@ -170,24 +170,23 @@ async function analyzeTextFile(
   fileUrl: string,
   fileType: FileType
 ): Promise<AnalyzeResult> {
-  // PDF ve PPT dosyalarını indir, metni çıkar
-  let extractedText = ""
-
+  // PDF'leri doğrudan Gemini Vision'a gönder (Gemini PDF'i native destekler)
   if (fileType === "pdf") {
-    const { default: pdfParse } = await import("pdf-parse")
-    const response = await fetch(fileUrl)
-    const buffer = Buffer.from(await response.arrayBuffer())
-    const data = await pdfParse(buffer)
-    extractedText = data.text || ""
-  } else if (fileType === "ppt") {
-    const { default: officeParser } = await import("officeparser")
-    const response = await fetch(fileUrl)
-    const buffer = Buffer.from(await response.arrayBuffer())
-    extractedText = await officeParser.parseOfficeAsync(buffer)
+    const { mimeType, data } = await imageToBase64(fileUrl)
+    const text = await callGeminiVision(
+      { mimeType: "application/pdf", data },
+      ANALYSIS_PROMPT
+    )
+    return parseGeminiResponse(text)
   }
 
+  // PPT için metin çıkarımı yap, sonra Gemini'ye gönder
+  const officeParser = await import("officeparser")
+  const response = await fetch(fileUrl)
+  const buffer = Buffer.from(await response.arrayBuffer())
+  const extractedText: string = (await officeParser.parseOffice(buffer)) as unknown as string
+
   if (!extractedText || extractedText.trim().length < 10) {
-    // Metin çıkarılamadıysa, görüntü olarak analiz et (taranmış PDF vb.)
     return analyzeImage(fileUrl)
   }
 
