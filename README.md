@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sınav Arkadaşı
 
-## Getting Started
+AI destekli öğrenci çalışma asistanı. Ders notlarını, kitap sayfalarını veya slaytlarını yükle; yapay zekâ sana özel çoktan seçmeli sorular ve açıklamalı cevaplar oluştursun.
 
-First, run the development server:
+## Proje Yapısı
+
+- `sinav_arkadasi/` — Flutter mobil ve web uygulaması (iOS, Android, Web)
+- `src/app/api/study/` — Next.js backend API'leri
+  - `upload` — dosya yükleme (Supabase Storage)
+  - `analyze` — AI ile soru analizi (Gemini)
+  - `materials` — kullanıcı materyallerini listele
+  - `[id]` — materyal ve sorularını getir
+- `src/lib/ai/study-analyzer.ts` — Gemini Vision ile soru üretimi
+- `src/lib/supabase/` — Supabase istemci ve auth yardımcıları
+
+## Teknolojiler
+
+- **Frontend:** Flutter, Riverpod, Go Router
+- **Backend:** Next.js 16, TypeScript
+- **Veritabanı & Auth:** Supabase
+- **AI:** Google Gemini API
+- **Deploy:** Vercel (Next.js), App Stores / Web (Flutter)
+
+## Geliştirme
+
+### Backend
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`.env.local` dosyasına şunları ekle:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```env
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+GEMINI_API_KEY=
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Flutter
 
-## Learn More
+```bash
+cd sinav_arkadasi
+flutter pub get
+flutter run
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Deploy
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Next.js backend otomatik olarak Vercel'e deploy edilir. Flutter web için `flutter build web` komutuyla statik dosyalar üretilir.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Lisans
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Tüm hakları saklıdır.
