@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { corsResponse, handleCorsPreflight } from "../cors"
+
+export async function OPTIONS() {
+  return handleCorsPreflight()
+}
 
 export async function GET() {
   try {
@@ -9,7 +14,7 @@ export async function GET() {
     } = await supabase.auth.getUser()
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return corsResponse({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { data: materials, error } = await supabase
@@ -19,7 +24,7 @@ export async function GET() {
       .order("created_at", { ascending: false })
 
     if (error) {
-      return NextResponse.json(
+      return corsResponse(
         { error: `Veritabanı hatası: ${error.message}` },
         { status: 500 }
       )
@@ -41,9 +46,9 @@ export async function GET() {
       question_count: countMap.get(m.id) || 0,
     }))
 
-    return NextResponse.json({ materials: materialsWithCounts })
+    return corsResponse({ materials: materialsWithCounts })
   } catch (error) {
     const message = error instanceof Error ? error.message : "Bilinmeyen hata"
-    return NextResponse.json({ error: message }, { status: 500 })
+    return corsResponse({ error: message }, { status: 500 })
   }
 }

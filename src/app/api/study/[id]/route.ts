@@ -1,5 +1,13 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { corsResponse, handleCorsPreflight } from "../cors"
+
+export async function OPTIONS(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  return handleCorsPreflight()
+}
 
 export async function GET(
   request: Request,
@@ -12,7 +20,7 @@ export async function GET(
     } = await supabase.auth.getUser()
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return corsResponse({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { id } = await params
@@ -25,7 +33,7 @@ export async function GET(
       .single()
 
     if (!material) {
-      return NextResponse.json(
+      return corsResponse(
         { error: "Materyal bulunamadı" },
         { status: 404 }
       )
@@ -37,12 +45,12 @@ export async function GET(
       .eq("material_id", id)
       .order("created_at", { ascending: true })
 
-    return NextResponse.json({
+    return corsResponse({
       material,
       questions: questions || [],
     })
   } catch (error) {
     const message = error instanceof Error ? error.message : "Bilinmeyen hata"
-    return NextResponse.json({ error: message }, { status: 500 })
+    return corsResponse({ error: message }, { status: 500 })
   }
 }

@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { analyzeMaterial } from "@/lib/ai/study-analyzer"
+import { corsResponse, handleCorsPreflight } from "../cors"
 
 export const maxDuration = 60
+
+export async function OPTIONS() {
+  return handleCorsPreflight()
+}
 
 export async function POST(request: Request) {
   try {
@@ -12,13 +17,13 @@ export async function POST(request: Request) {
     } = await supabase.auth.getUser()
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return corsResponse({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { materialId } = await request.json()
 
     if (!materialId) {
-      return NextResponse.json(
+      return corsResponse(
         { error: "materialId gerekli" },
         { status: 400 }
       )
@@ -32,7 +37,7 @@ export async function POST(request: Request) {
       .single()
 
     if (!material) {
-      return NextResponse.json(
+      return corsResponse(
         { error: "Materyal bulunamadı" },
         { status: 404 }
       )
@@ -45,7 +50,7 @@ export async function POST(request: Request) {
         .eq("material_id", materialId)
         .order("created_at", { ascending: true })
 
-      return NextResponse.json({ questions: existingQuestions, material })
+      return corsResponse({ questions: existingQuestions, material })
     }
 
     await supabase
@@ -82,7 +87,7 @@ export async function POST(request: Request) {
         .update({ status: "completed", updated_at: new Date().toISOString() })
         .eq("id", materialId)
 
-      return NextResponse.json({
+      return corsResponse({
         questions: insertedQuestions,
         material: { ...material, status: "completed" },
       })
@@ -101,6 +106,6 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : "Bilinmeyen hata"
-    return NextResponse.json({ error: message }, { status: 500 })
+    return corsResponse({ error: message }, { status: 500 })
   }
 }

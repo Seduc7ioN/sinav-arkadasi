@@ -13,6 +13,10 @@ Future<void> main() async {
     anonKey: AppConstants.supabaseAnonKey,
   );
 
+  Supabase.instance.client.auth.onAuthStateChange.listen((_) {
+    router.refresh();
+  });
+
   runApp(const ProviderScope(child: SinavArkadasiApp()));
 }
 
