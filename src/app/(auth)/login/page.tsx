@@ -3,16 +3,36 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
+import { createClient, setRememberMe } from "@/lib/supabase/client"
 import { Sparkles, Loader2, Eye, EyeOff } from "lucide-react"
+
+function getAuthErrorMessage(message: string) {
+  const lower = message.toLowerCase()
+  if (lower.includes("invalid login credentials")) {
+    return "E-posta veya şifre hatalı."
+  }
+  if (lower.includes("email not confirmed")) {
+    return "E-posta adresin doğrulanmamış. Lütfen gelen kutunu kontrol et."
+  }
+  if (lower.includes("user not found")) {
+    return "Bu e-posta adresiyle kayıtlı bir hesap bulunamadı."
+  }
+  return message
+}
 
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
+  const [rememberMe, setRememberMeState] = useState(true)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const handleRememberMeChange = (checked: boolean) => {
+    setRememberMeState(checked)
+    setRememberMe(checked)
+  }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -26,7 +46,7 @@ export default function LoginPage() {
     })
 
     if (error) {
-      setError(error.message)
+      setError(getAuthErrorMessage(error.message))
       setLoading(false)
       return
     }
@@ -89,6 +109,24 @@ export default function LoginPage() {
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => handleRememberMeChange(e.target.checked)}
+              className="h-4 w-4 rounded border-input"
+            />
+            Beni hatırla
+          </label>
+          <Link
+            href="/forgot-password"
+            className="text-sm font-medium text-primary hover:underline"
+          >
+            Şifremi unuttum
+          </Link>
         </div>
 
         <button
