@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Sparkles } from "lucide-react"
+import { Sparkles, Camera, FileText, BookOpen, Smartphone } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export default function LandingPage() {
@@ -8,15 +8,17 @@ export default function LandingPage() {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto flex h-16 items-center justify-between px-4 lg:px-8">
           <Link href="/" className="flex items-center gap-2 font-semibold text-lg">
-            <Sparkles className="h-5 w-5 text-primary" />
-            <span>AI Commerce OS</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500">
+              <Sparkles className="h-4 w-4 text-white" />
+            </div>
+            <span>Sınav Arkadaşı</span>
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/login">
-              <Button variant="ghost">Sign in</Button>
+              <Button variant="ghost">Giriş Yap</Button>
             </Link>
             <Link href="/signup">
-              <Button>Get Started</Button>
+              <Button>Ücretsiz Başla</Button>
             </Link>
           </div>
         </div>
@@ -26,23 +28,23 @@ export default function LandingPage() {
         <section className="container mx-auto px-4 lg:px-8 py-24 lg:py-32">
           <div className="mx-auto max-w-4xl text-center">
             <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
-              One Upload.
+              Notunu Çek.
               <br />
-              <span className="text-primary">Everything Ready.</span>
+              <span className="text-primary">Sorular Hazır.</span>
             </h1>
             <p className="mt-6 text-lg text-muted-foreground md:text-xl max-w-2xl mx-auto">
-              Upload your product once. AI generates every asset you need to sell
-              online — photos, backgrounds, descriptions, SEO, and marketing content.
+              Yapay zekâ destekli çalışma asistanın. Ders notlarını, kitap sayfalarını veya slaytlarını
+              fotoğrafla; sana özel çoktan seçmeli sorular anında oluştursun.
             </p>
             <div className="mt-10 flex items-center justify-center gap-4">
               <Link href="/signup">
                 <Button size="lg" className="text-base h-12 px-8">
-                  Start Free
+                  Ücretsiz Başla
                 </Button>
               </Link>
               <Link href="/login">
                 <Button variant="outline" size="lg" className="text-base h-12 px-8">
-                  Sign In
+                  Giriş Yap
                 </Button>
               </Link>
             </div>
@@ -79,19 +81,19 @@ export default function LandingPage() {
             <div>
               <div className="flex items-center gap-2 font-semibold text-sm mb-4">
                 <Sparkles className="h-4 w-4 text-primary" />
-                <span>AI Commerce OS</span>
+                <span>Sınav Arkadaşı</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                One Upload. Everything Ready.
+                Notunu çek, sorular hazır.
               </p>
             </div>
             <div>
-              <h4 className="font-medium text-sm mb-3">Hizmetler</h4>
+              <h4 className="font-medium text-sm mb-3">Özellikler</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>AI Product Photography</li>
-                <li>Background Removal</li>
-                <li>Content Generation</li>
-                <li>Marketplace Export</li>
+                <li>Fotoğraftan Soru Çıkarma</li>
+                <li>PDF ve Slayt Analizi</li>
+                <li>Çoktan Seçmeli Testler</li>
+                <li>Mobil ve Web</li>
               </ul>
             </div>
             <div>
@@ -116,8 +118,8 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="mt-8 border-t pt-6">
-            <p className="text-center text-sm text-muted-foreground">
-              &copy; {new Date().getFullYear()} AI Commerce OS. Tüm hakları saklıdır.
+            <p className="center text-sm text-muted-foreground text-center">
+              &copy; {new Date().getFullYear()} Sınav Arkadaşı. Tüm hakları saklıdır.
             </p>
           </div>
         </div>
@@ -128,39 +130,39 @@ export default function LandingPage() {
 
 const features = [
   {
-    title: "Product Photos",
+    title: "Fotoğraf Çek",
     description:
-      "Professional white background, transparent PNG, and lifestyle images automatically generated from your upload.",
+      "Telefonunla ders notunu veya kitap sayfasını çek. Yapay zekâ metni okusun.",
+    icon: Camera,
+  },
+  {
+    title: "PDF ve Slayt",
+    description:
+      "PDF, PPT ve DOCX dosyalarını yükle. İçerik otomatik analiz edilsin.",
+    icon: FileText,
+  },
+  {
+    title: "Test Oluştur",
+    description:
+      "Konudan otomatik çoktan seçmeli sorular ve açıklamalı cevaplar üretsin.",
+    icon: BookOpen,
+  },
+  {
+    title: "Her Yerde Çalışır",
+    description:
+      "iOS, Android ve web'de çalışan tek uygulama. İster telefonda ister bilgisayarda.",
+    icon: Smartphone,
+  },
+  {
+    title: "Akıllı Analiz",
+    description:
+      "Gemini yapay zekâ ile notundaki kavramları tanır, önemli noktalardan soru üretir.",
     icon: Sparkles,
   },
   {
-    title: "AI Backgrounds",
+    title: "Tüm Dersler",
     description:
-      "Generate studio-quality backgrounds that showcase your product in the best light with AI scene generation.",
-    icon: Sparkles,
-  },
-  {
-    title: "Content Generation",
-    description:
-      "Product descriptions, SEO metadata, and keywords written by AI to optimize your listings for search.",
-    icon: Sparkles,
-  },
-  {
-    title: "Marketplace Ready",
-    description:
-      "Export optimized images and content for Shopify, Amazon, Etsy, Trendyol, and more with one click.",
-    icon: Sparkles,
-  },
-  {
-    title: "Social Media",
-    description:
-      "Create Instagram posts, stories, and advertising creatives formatted for every platform.",
-    icon: Sparkles,
-  },
-  {
-    title: "Batch Processing",
-    description:
-      "Upload multiple products at once. AI processes everything in parallel. Save hours of manual work.",
-    icon: Sparkles,
+      "Matematikten tarihe, fen bilimlerinden dile kadar her konuda yardımcı olur.",
+    icon: BookOpen,
   },
 ]
