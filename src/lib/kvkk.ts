@@ -1,0 +1,5 @@
+export const COMPANY_NAME = "Sınav Arkadaşı"
+export const COMPANY_EMAIL = "destek@sinavarkadasi.app"
+export const COMPANY_WEBSITE = "https://sinav-arkadasi.vercel.app"
+export const KVKK_LAST_UPDATED = "12 Temmuz 2026"
+export const DATA_OFFICER_NAME = "Sınav Arkadaşı Veri Sorumlusu"

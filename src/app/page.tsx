@@ -118,7 +118,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="mt-8 border-t pt-6">
-            <p className="center text-sm text-muted-foreground text-center">
+            <p className="text-sm text-muted-foreground text-center">
               &copy; {new Date().getFullYear()} Sınav Arkadaşı. Tüm hakları saklıdır.
             </p>
           </div>
