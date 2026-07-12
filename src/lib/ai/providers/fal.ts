@@ -1,6 +1,16 @@
 import { fal } from "@fal-ai/client"
 import { BaseAIProvider } from "./interface"
-import type { AIProviderConfig, BgGenInput, ImageInput, ImageOutput } from "./schema"
+import type {
+  AIProviderConfig,
+  BgGenInput,
+  ImageAnalysis,
+  ImageInput,
+  ImageOutput,
+  KeywordInput,
+  SeoInput,
+  TextGenInput,
+  TextOutput,
+} from "./schema"
 
 /**
  * fal.ai image provider.
@@ -79,5 +89,21 @@ export class FalProvider extends BaseAIProvider {
       },
     })
     return { url: this.extractUrl(data), format: "png" }
+  }
+
+  async generateDescription(input: TextGenInput): Promise<TextOutput> {
+    throw new Error(`fal.ai does not support text generation: ${input.productName}`)
+  }
+
+  async generateKeywords(input: KeywordInput): Promise<TextOutput> {
+    throw new Error(`fal.ai does not support keyword generation: ${input.productName}`)
+  }
+
+  async generateSeoContent(input: SeoInput): Promise<TextOutput> {
+    throw new Error(`fal.ai does not support SEO content generation: ${input.productName}`)
+  }
+
+  async analyzeImage(input: ImageInput): Promise<ImageAnalysis> {
+    throw new Error(`fal.ai does not support image analysis: ${input.imageUrl}`)
   }
 }
