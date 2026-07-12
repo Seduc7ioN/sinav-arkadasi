@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/service-client"
 import { getUserFromRequest } from "@/lib/supabase/request-auth"
 import { analyzeMaterial } from "@/lib/ai/study-analyzer"
 import { corsResponse, handleCorsPreflight } from "../cors"
@@ -13,7 +13,7 @@ export async function OPTIONS(request: Request) {
 export async function POST(request: Request) {
   try {
     const user = await getUserFromRequest(request)
-    const supabase = await createClient()
+    const supabase = createServiceClient()
 
     if (!user) {
       return corsResponse({ error: "Unauthorized" }, { status: 401 }, request)
