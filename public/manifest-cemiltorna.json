@@ -1,0 +1,20 @@
+{
+  "name": "Cemil Torna - Disk Kampana Volant Taşlama",
+  "short_name": "CemilTorna",
+  "description": "Cemil Kurt Torna ve Akis Tamir Atölyesi. Adana Yüreğir'de disk, kampana, volant taşlama ve kaynak hizmetleri.",
+  "start_url": "/cemil-torna",
+  "scope": "/cemil-torna",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0a0a0b",
+  "theme_color": "#0a0a0b",
+  "lang": "tr",
+  "icons": [
+    {
+      "src": "/cemiltorna-logo.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
