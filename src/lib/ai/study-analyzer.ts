@@ -12,10 +12,14 @@ interface AnalyzeResult {
   questions: QuestionInput[]
 }
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY!
-const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash"
+const USE_NVIDIA = !!process.env.NVIDIA_API_KEY
+const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY
+const NVIDIA_MODEL = process.env.NVIDIA_MODEL || "meta/llama-3.2-90b-vision-instruct"
+const NVIDIA_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
 
-const BASE_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}`
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.0-flash"
+const GEMINI_BASE_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}`
 
 const ANALYSIS_PROMPT = `Sen bir eğitim asistanısın. Yüklenen belge/fotoğraftaki tüm metni incele.
 Ardından şu adımları uygula:
@@ -39,31 +43,103 @@ Yanıtını AŞAĞIDAKİ JSON formatında ver, başka hiçbir şey yazma:
   ]
 }`
 
-async function imageToBase64(
-  fileUrl: string
-): Promise<{ mimeType: string; data: string }> {
+async function fetchFileBuffer(fileUrl: string): Promise<{ buffer: Buffer; mimeType: string }> {
   const response = await fetch(fileUrl)
   if (!response.ok) {
     throw new Error(`Dosya alınamadı: ${response.statusText}`)
   }
-  const buffer = await response.arrayBuffer()
-  const bytes = new Uint8Array(buffer)
-  let binary = ""
-  for (let i = 0; i < bytes.length; i++) {
-    binary += String.fromCharCode(bytes[i])
+  const buffer = Buffer.from(await response.arrayBuffer())
+  const mimeType = response.headers.get("content-type") || "application/octet-stream"
+  return { buffer, mimeType }
+}
+
+async function callNvidiaVision(base64Image: string, prompt: string): Promise<string> {
+  if (!NVIDIA_API_KEY) {
+    throw new Error("NVIDIA_API_KEY ayarlanmamış")
   }
-  return {
-    mimeType: response.headers.get("content-type") || "image/png",
-    data: Buffer.from(bytes).toString("base64"),
+
+  const response = await fetch(NVIDIA_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${NVIDIA_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: NVIDIA_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: prompt },
+            {
+              type: "image_url",
+              image_url: { url: base64Image },
+            },
+          ],
+        },
+      ],
+      max_tokens: 2048,
+      temperature: 0.7,
+      top_p: 1,
+      stream: false,
+    }),
+  })
+
+  if (!response.ok) {
+    throw new Error(`NVIDIA API hatası: ${await response.text()}`)
   }
+
+  const data = await response.json()
+  const text = data.choices?.[0]?.message?.content
+  if (!text) {
+    throw new Error(`NVIDIA metin döndürmedi: ${JSON.stringify(data).slice(0, 300)}`)
+  }
+  return text
+}
+
+async function callNvidiaText(prompt: string): Promise<string> {
+  if (!NVIDIA_API_KEY) {
+    throw new Error("NVIDIA_API_KEY ayarlanmamış")
+  }
+
+  const response = await fetch(NVIDIA_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${NVIDIA_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: NVIDIA_MODEL,
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 2048,
+      temperature: 0.7,
+      top_p: 1,
+      stream: false,
+    }),
+  })
+
+  if (!response.ok) {
+    throw new Error(`NVIDIA API hatası: ${await response.text()}`)
+  }
+
+  const data = await response.json()
+  const text = data.choices?.[0]?.message?.content
+  if (!text) {
+    throw new Error(`NVIDIA metin döndürmedi: ${JSON.stringify(data).slice(0, 300)}`)
+  }
+  return text
 }
 
 async function callGeminiVision(
   imageBase64: { mimeType: string; data: string },
   prompt: string
 ): Promise<string> {
+  if (!GEMINI_API_KEY) {
+    throw new Error("GEMINI_API_KEY ayarlanmamış")
+  }
+
   const response = await fetch(
-    `${BASE_URL}:generateContent?key=${GEMINI_API_KEY}`,
+    `${GEMINI_BASE_URL}:generateContent?key=${GEMINI_API_KEY}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -92,16 +168,18 @@ async function callGeminiVision(
   const data = await response.json()
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text
   if (!text) {
-    throw new Error(
-      `Gemini metin döndürmedi: ${JSON.stringify(data).slice(0, 300)}`
-    )
+    throw new Error(`Gemini metin döndürmedi: ${JSON.stringify(data).slice(0, 300)}`)
   }
   return text
 }
 
 async function callGeminiText(prompt: string): Promise<string> {
+  if (!GEMINI_API_KEY) {
+    throw new Error("GEMINI_API_KEY ayarlanmamış")
+  }
+
   const response = await fetch(
-    `${BASE_URL}:generateContent?key=${GEMINI_API_KEY}`,
+    `${GEMINI_BASE_URL}:generateContent?key=${GEMINI_API_KEY}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -118,21 +196,35 @@ async function callGeminiText(prompt: string): Promise<string> {
   const data = await response.json()
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text
   if (!text) {
-    throw new Error(
-      `Gemini metin döndürmedi: ${JSON.stringify(data).slice(0, 300)}`
-    )
+    throw new Error(`Gemini metin döndürmedi: ${JSON.stringify(data).slice(0, 300)}`)
   }
   return text
 }
 
-function parseGeminiResponse(text: string): AnalyzeResult {
-  // Temizle: ```json blokları ve fazladan boşlukları kaldır
+async function callVision(
+  imageBase64: { mimeType: string; data: string },
+  prompt: string
+): Promise<string> {
+  if (USE_NVIDIA) {
+    const dataUrl = `data:${imageBase64.mimeType};base64,${imageBase64.data}`
+    return callNvidiaVision(dataUrl, prompt)
+  }
+  return callGeminiVision(imageBase64, prompt)
+}
+
+async function callText(prompt: string): Promise<string> {
+  if (USE_NVIDIA) {
+    return callNvidiaText(prompt)
+  }
+  return callGeminiText(prompt)
+}
+
+function parseResponse(text: string): AnalyzeResult {
   let cleaned = text
     .replace(/```json\s*/g, "")
     .replace(/```\s*/g, "")
     .trim()
 
-  // Bazen JSON dışında açıklama da dönüyor, ilk { ile son } arasını al
   const firstBrace = cleaned.indexOf("{")
   const lastBrace = cleaned.lastIndexOf("}")
   if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
@@ -155,44 +247,37 @@ function parseGeminiResponse(text: string): AnalyzeResult {
     }
   } catch (error) {
     throw new Error(
-      `Gemini JSON yanıtı parse edilemedi: ${error instanceof Error ? error.message : ""}. Ham yanıt: ${text.slice(0, 500)}`
+      `AI yanıtı parse edilemedi: ${error instanceof Error ? error.message : ""}. Ham yanıt: ${text.slice(0, 500)}`
     )
   }
 }
 
 async function analyzeImage(fileUrl: string): Promise<AnalyzeResult> {
-  const img = await imageToBase64(fileUrl)
-  const text = await callGeminiVision(img, ANALYSIS_PROMPT)
-  return parseGeminiResponse(text)
+  const { buffer, mimeType } = await fetchFileBuffer(fileUrl)
+  const base64 = buffer.toString("base64")
+  const text = await callVision({ mimeType, data: base64 }, ANALYSIS_PROMPT)
+  return parseResponse(text)
 }
 
-async function analyzeTextFile(
-  fileUrl: string,
-  fileType: FileType
-): Promise<AnalyzeResult> {
-  // PDF'leri doğrudan Gemini Vision'a gönder (Gemini PDF'i native destekler)
-  if (fileType === "pdf") {
-    const { mimeType, data } = await imageToBase64(fileUrl)
-    const text = await callGeminiVision(
-      { mimeType: "application/pdf", data },
-      ANALYSIS_PROMPT
-    )
-    return parseGeminiResponse(text)
-  }
-
-  // PPT için metin çıkarımı yap, sonra Gemini'ye gönder
+async function extractOfficeText(fileUrl: string): Promise<string> {
+  const { buffer } = await fetchFileBuffer(fileUrl)
   const officeParser = await import("officeparser")
-  const response = await fetch(fileUrl)
-  const buffer = Buffer.from(await response.arrayBuffer())
-  const extractedText: string = (await officeParser.parseOffice(buffer)) as unknown as string
+  const extractedText = (await officeParser.parseOffice(buffer)) as unknown as string
+  return extractedText || ""
+}
+
+async function analyzeTextFile(fileUrl: string, fileType: FileType): Promise<AnalyzeResult> {
+  // PDF ve PPT için metin çıkarımı yap
+  const extractedText = await extractOfficeText(fileUrl)
 
   if (!extractedText || extractedText.trim().length < 10) {
+    // Metin çıkamazsa görüntü olarak gönder (son çare)
     return analyzeImage(fileUrl)
   }
 
   const prompt = `Aşağıdaki metni incele ve sorular oluştur:\n\n${extractedText.slice(0, 15000)}\n\n---\n\n${ANALYSIS_PROMPT}`
-  const text = await callGeminiText(prompt)
-  return parseGeminiResponse(text)
+  const text = await callText(prompt)
+  return parseResponse(text)
 }
 
 export async function analyzeMaterial(
