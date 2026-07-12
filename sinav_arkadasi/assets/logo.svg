@@ -1,0 +1,14 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1024" height="1024" rx="224" fill="url(#brandGradient)"/>
+  <rect x="296" y="336" width="432" height="48" rx="24" fill="white" fill-opacity="0.95"/>
+  <rect x="296" y="456" width="336" height="48" rx="24" fill="white" fill-opacity="0.75"/>
+  <rect x="296" y="576" width="384" height="48" rx="24" fill="white" fill-opacity="0.75"/>
+  <rect x="296" y="696" width="240" height="48" rx="24" fill="white" fill-opacity="0.55"/>
+  <path d="M760 304L786.5 370.5L853 397L786.5 423.5L760 490L733.5 423.5L667 397L733.5 370.5L760 304Z" fill="#FCD34D"/>
+  <defs>
+    <linearGradient id="brandGradient" x1="0" y1="0" x2="1024" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6366F1"/>
+      <stop offset="1" stop-color="#8B5CF6"/>
+    </linearGradient>
+  </defs>
+</svg>
