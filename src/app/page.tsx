@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Sparkles, Camera, FileText, BookOpen, Smartphone, Mail, ChevronDown } from "lucide-react"
+import { Sparkles, Camera, FileText, BookOpen, Smartphone } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export default function LandingPage() {
@@ -13,13 +13,14 @@ export default function LandingPage() {
             </div>
             <span>Sınav Arkadaşı</span>
           </Link>
-          <a
-            href="mailto:destek@sinavarkadasi.app"
-            className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Mail className="h-4 w-4" />
-            İletişim
-          </a>
+          <div className="flex items-center gap-4">
+            <Link href="/login">
+              <Button variant="ghost" size="sm">Giriş Yap</Button>
+            </Link>
+            <Link href="/signup">
+              <Button size="sm">Ücretsiz Başla</Button>
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -36,17 +37,16 @@ export default function LandingPage() {
               fotoğrafla; sana özel çoktan seçmeli sorular anında oluştursun.
             </p>
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-              <a href="#ozellikler">
+              <Link href="/signup">
                 <Button size="lg" className="text-base h-12 px-8">
-                  Özellikleri Keşfet
-                  <ChevronDown className="ml-2 h-4 w-4" />
+                  Ücretsiz Başla
                 </Button>
-              </a>
-              <a href="mailto:destek@sinavarkadasi.app">
+              </Link>
+              <Link href="/login">
                 <Button variant="outline" size="lg" className="text-base h-12 px-8">
-                  Bize Ulaş
+                  Giriş Yap
                 </Button>
-              </a>
+              </Link>
             </div>
           </div>
         </section>
