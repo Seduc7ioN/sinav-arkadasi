@@ -4,6 +4,42 @@ import { Sparkles, BookOpen, Upload, FileQuestion } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { Button } from "@/components/ui/button"
 import { LogoutButton } from "./logout-button"
+import { UploadDialog } from "./upload-dialog"
+import { MaterialsList } from "./materials-list"
+import type { StudyMaterial } from "@/types"
+
+async function getMaterials(): Promise<StudyMaterial[]> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) return []
+
+  const { data: materials, error } = await supabase
+    .from("study_materials")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+
+  if (error || !materials) return []
+
+  const materialIds = materials.map((m) => m.id)
+  const { data: questionCounts } = await supabase
+    .from("questions")
+    .select("material_id")
+    .in("material_id", materialIds)
+
+  const countMap = new Map<string, number>()
+  questionCounts?.forEach((q) => {
+    countMap.set(q.material_id, (countMap.get(q.material_id) || 0) + 1)
+  })
+
+  return materials.map((m) => ({
+    ...m,
+    question_count: countMap.get(m.id) || 0,
+  }))
+}
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -14,6 +50,8 @@ export default async function DashboardPage() {
   if (!user) {
     redirect("/login")
   }
+
+  const materials = await getMaterials()
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -35,24 +73,29 @@ export default async function DashboardPage() {
       </header>
 
       <main className="flex-1 container mx-auto px-4 lg:px-8 py-12">
-        <div className="mx-auto max-w-4xl">
-          <h1 className="text-3xl font-bold mb-2">Panel</h1>
-          <p className="text-muted-foreground mb-8">
-            Mobil uygulamayı indirerek notlarını yükleyebilir ve sorular oluşturabilirsin.
-          </p>
+        <div className="mx-auto max-w-5xl">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+            <div>
+              <h1 className="text-3xl font-bold">Panel</h1>
+              <p className="text-muted-foreground">
+                Notlarını yükle, sorular oluştur ve çalış.
+              </p>
+            </div>
+            <UploadDialog />
+          </div>
 
-          <div className="grid gap-6 md:grid-cols-3">
-            <div className="rounded-xl border p-6">
+          <div className="grid gap-6 md:grid-cols-3 mb-12">
+            <Link href="#materials" className="rounded-xl border p-6 hover:border-primary/50 transition-colors">
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
                 <Upload className="h-6 w-6 text-primary" />
               </div>
               <h3 className="font-semibold text-lg mb-2">Not Yükle</h3>
               <p className="text-sm text-muted-foreground">
-                Fotoğraf, PDF veya slaytını mobil uygulamadan yükle.
+                Fotoğraf, PDF veya slaytını webden hızlıca yükle.
               </p>
-            </div>
+            </Link>
 
-            <div className="rounded-xl border p-6">
+            <Link href="#materials" className="rounded-xl border p-6 hover:border-primary/50 transition-colors">
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
                 <FileQuestion className="h-6 w-6 text-primary" />
               </div>
@@ -60,29 +103,23 @@ export default async function DashboardPage() {
               <p className="text-sm text-muted-foreground">
                 Yapay zekâ ile konudan otomatik test soruları üret.
               </p>
-            </div>
+            </Link>
 
-            <div className="rounded-xl border p-6">
+            <Link href="#materials" className="rounded-xl border p-6 hover:border-primary/50 transition-colors">
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
                 <BookOpen className="h-6 w-6 text-primary" />
               </div>
               <h3 className="font-semibold text-lg mb-2">Çalış</h3>
               <p className="text-sm text-muted-foreground">
-                Ürettiğin sorularla konuy pekiştir.
+                Ürettiğin sorularla konuyu pekiştir.
               </p>
-            </div>
-          </div>
-
-          <div className="mt-12 rounded-xl border bg-muted/30 p-8 text-center">
-            <h2 className="text-xl font-semibold mb-4">Uygulamayı İndir</h2>
-            <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
-              Web üzerinden şu an sadece giriş yapabilirsin. Not yükleme ve soru oluşturma
-              işlemleri için mobil uygulamayı kullan.
-            </p>
-            <Link href="/">
-              <Button variant="outline">Ana Sayfaya Dön</Button>
             </Link>
           </div>
+
+          <section id="materials">
+            <h2 className="text-xl font-semibold mb-4">Materyallerim</h2>
+            <MaterialsList materials={materials} />
+          </section>
         </div>
       </main>
     </div>
