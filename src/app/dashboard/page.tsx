@@ -57,7 +57,7 @@ export default async function DashboardPage() {
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
         <div className="container mx-auto flex h-16 items-center justify-between px-4 lg:px-8">
-          <Link href="/" className="flex items-center gap-2 font-semibold text-lg">
+          <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-lg">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500">
               <Sparkles className="h-4 w-4 text-white" />
             </div>
