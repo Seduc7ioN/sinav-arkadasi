@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants.dart';
@@ -31,7 +32,13 @@ class StudyRepository {
         .toList();
   }
 
-  Future<StudyMaterial> uploadFile(String filePath, String title) async {
+  Future<StudyMaterial> uploadFile({
+    required String filePath,
+    Uint8List? fileBytes,
+    required String fileName,
+    String? mimeType,
+    required String title,
+  }) async {
     final request = http.MultipartRequest(
       'POST',
       Uri.parse('${AppConstants.apiBaseUrl}/api/study/upload'),
@@ -39,7 +46,18 @@ class StudyRepository {
 
     request.headers['Authorization'] = 'Bearer $_token';
     request.fields['title'] = title;
-    request.files.add(await http.MultipartFile.fromPath('file', filePath));
+
+    if (fileBytes != null) {
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'file',
+          fileBytes,
+          filename: fileName,
+        ),
+      );
+    } else {
+      request.files.add(await http.MultipartFile.fromPath('file', filePath));
+    }
 
     final response = await request.send();
     final body = await response.stream.bytesToString();

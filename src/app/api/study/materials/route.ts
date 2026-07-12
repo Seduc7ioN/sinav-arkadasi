@@ -1,20 +1,19 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { getUserFromRequest } from "@/lib/supabase/request-auth"
 import { corsResponse, handleCorsPreflight } from "../cors"
 
-export async function OPTIONS() {
-  return handleCorsPreflight()
+export async function OPTIONS(request: Request) {
+  return handleCorsPreflight(request)
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const user = await getUserFromRequest(request)
     const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
 
     if (!user) {
-      return corsResponse({ error: "Unauthorized" }, { status: 401 })
+      return corsResponse({ error: "Unauthorized" }, { status: 401 }, request)
     }
 
     const { data: materials, error } = await supabase
@@ -26,7 +25,8 @@ export async function GET() {
     if (error) {
       return corsResponse(
         { error: `Veritabanı hatası: ${error.message}` },
-        { status: 500 }
+        { status: 500 },
+        request
       )
     }
 
@@ -46,9 +46,13 @@ export async function GET() {
       question_count: countMap.get(m.id) || 0,
     }))
 
-    return corsResponse({ materials: materialsWithCounts })
+    return corsResponse(
+      { materials: materialsWithCounts },
+      {},
+      request
+    )
   } catch (error) {
     const message = error instanceof Error ? error.message : "Bilinmeyen hata"
-    return corsResponse({ error: message }, { status: 500 })
+    return corsResponse({ error: message }, { status: 500 }, request)
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/study_material.dart';
 import '../models/question.dart';
@@ -22,9 +23,20 @@ class MaterialsNotifier extends AsyncNotifier<List<StudyMaterial>> {
     );
   }
 
-  Future<StudyMaterial> upload(String filePath, String title) async {
-    final material =
-        await ref.read(studyRepoProvider).uploadFile(filePath, title);
+  Future<StudyMaterial> upload({
+    required String filePath,
+    required String title,
+    Uint8List? fileBytes,
+    String? fileName,
+    String? mimeType,
+  }) async {
+    final material = await ref.read(studyRepoProvider).uploadFile(
+          filePath: filePath,
+          fileBytes: fileBytes,
+          fileName: fileName ?? filePath.split('/').last,
+          mimeType: mimeType,
+          title: title,
+        );
     await refresh();
     return material;
   }

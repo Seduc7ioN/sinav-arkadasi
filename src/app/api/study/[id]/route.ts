@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { getUserFromRequest } from "@/lib/supabase/request-auth"
 import { corsResponse, handleCorsPreflight } from "../cors"
 
 export async function OPTIONS(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return handleCorsPreflight()
+  return handleCorsPreflight(request)
 }
 
 export async function GET(
@@ -14,13 +15,11 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const user = await getUserFromRequest(request)
     const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
 
     if (!user) {
-      return corsResponse({ error: "Unauthorized" }, { status: 401 })
+      return corsResponse({ error: "Unauthorized" }, { status: 401 }, request)
     }
 
     const { id } = await params
@@ -35,7 +34,8 @@ export async function GET(
     if (!material) {
       return corsResponse(
         { error: "Materyal bulunamadı" },
-        { status: 404 }
+        { status: 404 },
+        request
       )
     }
 
@@ -45,12 +45,13 @@ export async function GET(
       .eq("material_id", id)
       .order("created_at", { ascending: true })
 
-    return corsResponse({
-      material,
-      questions: questions || [],
-    })
+    return corsResponse(
+      { material, questions: questions || [] },
+      {},
+      request
+    )
   } catch (error) {
     const message = error instanceof Error ? error.message : "Bilinmeyen hata"
-    return corsResponse({ error: message }, { status: 500 })
+    return corsResponse({ error: message }, { status: 500 }, request)
   }
 }

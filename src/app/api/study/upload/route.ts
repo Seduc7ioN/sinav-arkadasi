@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { getUserFromRequest } from "@/lib/supabase/request-auth"
 import { corsResponse, handleCorsPreflight } from "../cors"
 
 const VALID_TYPES = new Map([
@@ -16,43 +17,56 @@ const VALID_TYPES = new Map([
 
 const MAX_SIZE = 20 * 1024 * 1024
 
-export async function OPTIONS() {
-  return handleCorsPreflight()
+export async function OPTIONS(request: Request) {
+  return handleCorsPreflight(request)
 }
 
 export async function POST(request: Request) {
   try {
+    const user = await getUserFromRequest(request)
     const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
 
     if (!user) {
-      return corsResponse({ error: "Unauthorized" }, { status: 401 })
+      return corsResponse({ error: "Unauthorized" }, { status: 401 }, request)
     }
 
     const formData = await request.formData()
     const file = formData.get("file") as File | null
 
     if (!file) {
-      return corsResponse({ error: "Dosya gerekli" }, { status: 400 })
+      return corsResponse(
+        { error: "Dosya gerekli" },
+        { status: 400 },
+        request
+      )
     }
 
     if (file.size > MAX_SIZE) {
       return corsResponse(
         { error: "Dosya boyutu 20MB'dan büyük olamaz" },
-        { status: 400 }
+        { status: 400 },
+        request
       )
     }
 
-    const fileType = VALID_TYPES.get(file.type)
+    const fileExtFromName = file.name.split(".").pop()?.toLowerCase() || ""
+    const fileType = VALID_TYPES.get(file.type) ||
+      (fileExtFromName === "pdf"
+        ? "pdf"
+        : fileExtFromName === "ppt" || fileExtFromName === "pptx"
+          ? "ppt"
+          : ["jpg", "jpeg", "png", "webp"].includes(fileExtFromName)
+            ? "image"
+            : null)
+
     if (!fileType) {
       return corsResponse(
         {
           error:
             "Desteklenmeyen dosya formatı. Lütfen JPEG, PNG, PDF veya PPT yükleyin",
         },
-        { status: 400 }
+        { status: 400 },
+        request
       )
     }
 
@@ -72,7 +86,8 @@ export async function POST(request: Request) {
     if (uploadError) {
       return corsResponse(
         { error: `Dosya yükleme hatası: ${uploadError.message}` },
-        { status: 500 }
+        { status: 500 },
+        request
       )
     }
 
@@ -95,13 +110,14 @@ export async function POST(request: Request) {
     if (dbError) {
       return corsResponse(
         { error: `Veritabanı hatası: ${dbError.message}` },
-        { status: 500 }
+        { status: 500 },
+        request
       )
     }
 
-    return corsResponse({ material })
+    return corsResponse({ material }, {}, request)
   } catch (error) {
     const message = error instanceof Error ? error.message : "Bilinmeyen hata"
-    return corsResponse({ error: message }, { status: 500 })
+    return corsResponse({ error: message }, { status: 500 }, request)
   }
 }

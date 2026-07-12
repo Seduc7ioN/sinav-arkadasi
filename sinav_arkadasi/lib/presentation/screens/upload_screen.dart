@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../core/theme.dart';
 import '../../data/providers/materials_provider.dart';
+import '../../data/repositories/study_repo.dart';
 
 class UploadScreen extends ConsumerStatefulWidget {
   const UploadScreen({super.key});
@@ -19,6 +22,8 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
   final _titleCtrl = TextEditingController();
   String? _filePath;
   String? _fileName;
+  Uint8List? _fileBytes;
+  String? _mimeType;
   bool _uploading = false;
 
   @override
@@ -27,74 +32,100 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
     super.dispose();
   }
 
+  void _setFileInfo(String name) {
+    _fileName = name;
+    if (_titleCtrl.text.isEmpty) {
+      _titleCtrl.text = name.replaceAll(RegExp(r'\.[^.]+$'), '');
+    }
+  }
+
   Future<void> _pickFromCamera() async {
     final file = await _picker.pickImage(source: ImageSource.camera);
-    if (file != null) {
-      setState(() {
-        _filePath = file.path;
-        _fileName = file.name;
-        if (_titleCtrl.text.isEmpty) {
-          _titleCtrl.text = file.name.replaceAll(RegExp(r'\.[^.]+$'), '');
-        }
-      });
-    }
+    if (file == null) return;
+
+    final bytes = await file.readAsBytes();
+    setState(() {
+      _filePath = file.path;
+      _fileBytes = bytes;
+      _mimeType = 'image/jpeg';
+      _setFileInfo(file.name);
+    });
   }
 
   Future<void> _pickFromGallery() async {
     final file = await _picker.pickImage(source: ImageSource.gallery);
-    if (file != null) {
-      setState(() {
-        _filePath = file.path;
-        _fileName = file.name;
-        if (_titleCtrl.text.isEmpty) {
-          _titleCtrl.text = file.name.replaceAll(RegExp(r'\.[^.]+$'), '');
-        }
-      });
-    }
+    if (file == null) return;
+
+    final bytes = await file.readAsBytes();
+    setState(() {
+      _filePath = file.path;
+      _fileBytes = bytes;
+      _mimeType = 'image/${file.name.split('.').last.toLowerCase()}';
+      _setFileInfo(file.name);
+    });
   }
 
   Future<void> _pickFile() async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf', 'ppt', 'pptx'],
+      withData: true,
     );
-    if (result != null && result.files.single.path != null) {
-      setState(() {
-        _filePath = result.files.single.path;
-        _fileName = result.files.single.name;
-        if (_titleCtrl.text.isEmpty) {
-          _titleCtrl.text =
-              result.files.single.name.replaceAll(RegExp(r'\.[^.]+$'), '');
-        }
-      });
+    if (result == null) return;
+
+    final picked = result.files.single;
+    if (picked.bytes == null && picked.path == null) return;
+
+    Uint8List? bytes = picked.bytes;
+    if (bytes == null && picked.path != null) {
+      bytes = await File(picked.path!).readAsBytes();
     }
+
+    setState(() {
+      _filePath = picked.path;
+      _fileBytes = bytes;
+      _fileName = picked.name;
+      _mimeType = picked.extension == 'pdf'
+          ? 'application/pdf'
+          : 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+      _setFileInfo(picked.name);
+    });
   }
 
   Future<void> _upload() async {
-    if (_filePath == null) return;
+    if (_fileBytes == null && _filePath == null) return;
     setState(() => _uploading = true);
 
     try {
       final title = _titleCtrl.text.trim().isEmpty
           ? 'İsimsiz Materyal'
           : _titleCtrl.text.trim();
-      final material = await ref.read(materialsProvider.notifier).upload(
-            _filePath!,
-            title,
+
+      final material = await ref.read(studyRepoProvider).uploadFile(
+            filePath: _filePath ?? 'upload',
+            fileBytes: _fileBytes,
+            fileName: _fileName ?? 'dosya',
+            mimeType: _mimeType,
+            title: title,
           );
-      if (material.status == 'uploaded' && mounted) {
+
+      if (mounted) {
         context.push('/material/${material.id}');
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Hata: $e'), backgroundColor: AppTheme.error),
+          SnackBar(content: Text('Hata: $e'), backgroundColor: AppTheme.error),
         );
       }
     } finally {
       if (mounted) setState(() => _uploading = false);
     }
+  }
+
+  bool get _isDocument {
+    final name = _fileName?.toLowerCase() ?? '';
+    return name.endsWith('.pdf') || name.endsWith('.ppt') || name.endsWith('.pptx');
   }
 
   @override
@@ -106,12 +137,10 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (_filePath != null) ...[
+            if (_fileBytes != null || _filePath != null) ...[
               ClipRRect(
                 borderRadius: BorderRadius.circular(16),
-                child: _fileName?.endsWith('.pdf') == true ||
-                        _fileName?.endsWith('.ppt') == true ||
-                        _fileName?.endsWith('.pptx') == true
+                child: _isDocument
                     ? Container(
                         height: 200,
                         color: AppTheme.primary.withOpacity(0.05),
@@ -123,10 +152,19 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
                           color: AppTheme.primary,
                         ),
                       )
-                    : Image.file(File(_filePath!),
-                        height: 250,
-                        width: double.infinity,
-                        fit: BoxFit.cover),
+                    : kIsWeb
+                        ? Image.memory(
+                            _fileBytes!,
+                            height: 250,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          )
+                        : Image.file(
+                            File(_filePath!),
+                            height: 250,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
               ),
               const SizedBox(height: 16),
               TextField(
@@ -152,7 +190,9 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
               TextButton(
                 onPressed: () => setState(() {
                   _filePath = null;
+                  _fileBytes = null;
                   _fileName = null;
+                  _mimeType = null;
                 }),
                 child: const Text('Dosyayı Değiştir'),
               ),

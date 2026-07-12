@@ -1,23 +1,22 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { getUserFromRequest } from "@/lib/supabase/request-auth"
 import { analyzeMaterial } from "@/lib/ai/study-analyzer"
 import { corsResponse, handleCorsPreflight } from "../cors"
 
 export const maxDuration = 60
 
-export async function OPTIONS() {
-  return handleCorsPreflight()
+export async function OPTIONS(request: Request) {
+  return handleCorsPreflight(request)
 }
 
 export async function POST(request: Request) {
   try {
+    const user = await getUserFromRequest(request)
     const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
 
     if (!user) {
-      return corsResponse({ error: "Unauthorized" }, { status: 401 })
+      return corsResponse({ error: "Unauthorized" }, { status: 401 }, request)
     }
 
     const { materialId } = await request.json()
@@ -25,7 +24,8 @@ export async function POST(request: Request) {
     if (!materialId) {
       return corsResponse(
         { error: "materialId gerekli" },
-        { status: 400 }
+        { status: 400 },
+        request
       )
     }
 
@@ -39,7 +39,8 @@ export async function POST(request: Request) {
     if (!material) {
       return corsResponse(
         { error: "Materyal bulunamadı" },
-        { status: 404 }
+        { status: 404 },
+        request
       )
     }
 
@@ -50,7 +51,11 @@ export async function POST(request: Request) {
         .eq("material_id", materialId)
         .order("created_at", { ascending: true })
 
-      return corsResponse({ questions: existingQuestions, material })
+      return corsResponse(
+        { questions: existingQuestions, material },
+        {},
+        request
+      )
     }
 
     await supabase
@@ -87,10 +92,14 @@ export async function POST(request: Request) {
         .update({ status: "completed", updated_at: new Date().toISOString() })
         .eq("id", materialId)
 
-      return corsResponse({
-        questions: insertedQuestions,
-        material: { ...material, status: "completed" },
-      })
+      return corsResponse(
+        {
+          questions: insertedQuestions,
+          material: { ...material, status: "completed" },
+        },
+        {},
+        request
+      )
     } catch (analysisError) {
       const message =
         analysisError instanceof Error
@@ -106,6 +115,6 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : "Bilinmeyen hata"
-    return corsResponse({ error: message }, { status: 500 })
+    return corsResponse({ error: message }, { status: 500 }, request)
   }
 }
