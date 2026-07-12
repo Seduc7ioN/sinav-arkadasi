@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { createClient, setRememberMe } from "@/lib/supabase/client"
@@ -28,6 +28,17 @@ export default function LoginPage() {
   const [rememberMe, setRememberMeState] = useState(true)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth
+      .getSession()
+      .then((result: { data: { session: { access_token: string } | null } }) => {
+        if (result.data.session) {
+          router.replace("/dashboard")
+        }
+      })
+  }, [router])
 
   const handleRememberMeChange = (checked: boolean) => {
     setRememberMeState(checked)
