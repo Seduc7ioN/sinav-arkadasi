@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.zcode.sinav_arkadasi"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
