@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Sparkles, Camera, FileText, BookOpen, Smartphone } from "lucide-react"
+import { Sparkles, Camera, FileText, BookOpen, Smartphone, Mail, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export default function LandingPage() {
@@ -13,14 +13,13 @@ export default function LandingPage() {
             </div>
             <span>Sınav Arkadaşı</span>
           </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/login">
-              <Button variant="ghost">Giriş Yap</Button>
-            </Link>
-            <Link href="/signup">
-              <Button>Ücretsiz Başla</Button>
-            </Link>
-          </div>
+          <a
+            href="mailto:destek@sinavarkadasi.app"
+            className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Mail className="h-4 w-4" />
+            İletişim
+          </a>
         </div>
       </header>
 
@@ -36,22 +35,23 @@ export default function LandingPage() {
               Yapay zekâ destekli çalışma asistanın. Ders notlarını, kitap sayfalarını veya slaytlarını
               fotoğrafla; sana özel çoktan seçmeli sorular anında oluştursun.
             </p>
-            <div className="mt-10 flex items-center justify-center gap-4">
-              <Link href="/signup">
+            <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+              <a href="#ozellikler">
                 <Button size="lg" className="text-base h-12 px-8">
-                  Ücretsiz Başla
+                  Özellikleri Keşfet
+                  <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
-              </Link>
-              <Link href="/login">
+              </a>
+              <a href="mailto:destek@sinavarkadasi.app">
                 <Button variant="outline" size="lg" className="text-base h-12 px-8">
-                  Giriş Yap
+                  Bize Ulaş
                 </Button>
-              </Link>
+              </a>
             </div>
           </div>
         </section>
 
-        <section className="border-t py-20 lg:py-28">
+        <section id="ozellikler" className="border-t py-20 lg:py-28">
           <div className="container mx-auto px-4 lg:px-8">
             <div className="mx-auto max-w-6xl">
               <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
@@ -71,6 +71,21 @@ export default function LandingPage() {
                 ))}
               </div>
             </div>
+          </div>
+        </section>
+
+        <section className="border-t py-20 lg:py-28 bg-muted/30">
+          <div className="container mx-auto px-4 lg:px-8 text-center">
+            <h2 className="text-3xl font-bold mb-4">Hemen Başla</h2>
+            <p className="text-muted-foreground max-w-xl mx-auto mb-8">
+              Sınav Arkadaşı mobil uygulamasını indir, notunu çek ve yapay zekânın sorularını gör.
+              Web üzerinden de kullanabilirsin.
+            </p>
+            <a href="mailto:destek@sinavarkadasi.app">
+              <Button size="lg" className="text-base h-12 px-8">
+                Bilgi Al
+              </Button>
+            </a>
           </div>
         </section>
       </main>
@@ -156,7 +171,7 @@ const features = [
   {
     title: "Akıllı Analiz",
     description:
-      "Gemini yapay zekâ ile notundaki kavramları tanır, önemli noktalardan soru üretir.",
+      "NVIDIA NIM yapay zekâ ile notundaki kavramları tanır, önemli noktalardan soru üretir.",
     icon: Sparkles,
   },
   {
