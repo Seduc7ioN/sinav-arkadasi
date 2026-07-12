@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
 import { createServiceClient } from "@/lib/supabase/service-client"
+
+export const runtime = "nodejs"
 import { getUserFromRequest } from "@/lib/supabase/request-auth"
 import { analyzeMaterial } from "@/lib/ai/study-analyzer"
 import { corsResponse, handleCorsPreflight } from "../cors"

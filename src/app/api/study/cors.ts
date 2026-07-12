@@ -4,6 +4,7 @@ const ALLOWED_ORIGINS = [
   "http://localhost:4444",
   "http://localhost:3000",
   "http://localhost:3001",
+  "https://sinav-arkadasi.vercel.app",
 ]
 
 function getAllowOrigin(request?: Request) {
