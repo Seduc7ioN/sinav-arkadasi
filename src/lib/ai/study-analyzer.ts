@@ -12,7 +12,6 @@ interface AnalyzeResult {
   questions: QuestionInput[]
 }
 
-const USE_NVIDIA = !!process.env.NVIDIA_API_KEY
 const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY
 const NVIDIA_MODEL = process.env.NVIDIA_MODEL || "meta/llama-3.2-11b-vision-instruct"
 const NVIDIA_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
@@ -20,6 +19,8 @@ const NVIDIA_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY
 const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.0-flash"
 const GEMINI_BASE_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}`
+
+const USE_GEMINI = !!GEMINI_API_KEY
 
 const ANALYSIS_PROMPT = `Sen bir eğitim asistanısın. Yüklenen belge/fotoğraftaki metni hızlıca incele.
 
@@ -204,18 +205,24 @@ async function callVision(
   imageBase64: { mimeType: string; data: string },
   prompt: string
 ): Promise<string> {
-  if (USE_NVIDIA) {
-    const dataUrl = `data:${imageBase64.mimeType};base64,${imageBase64.data}`
-    return callNvidiaVision(dataUrl, prompt)
+  if (USE_GEMINI) {
+    return callGeminiVision(imageBase64, prompt)
   }
-  return callGeminiVision(imageBase64, prompt)
+  if (!NVIDIA_API_KEY) {
+    throw new Error("GEMINI_API_KEY veya NVIDIA_API_KEY ayarlanmamış")
+  }
+  const dataUrl = `data:${imageBase64.mimeType};base64,${imageBase64.data}`
+  return callNvidiaVision(dataUrl, prompt)
 }
 
 async function callText(prompt: string): Promise<string> {
-  if (USE_NVIDIA) {
-    return callNvidiaText(prompt)
+  if (USE_GEMINI) {
+    return callGeminiText(prompt)
   }
-  return callGeminiText(prompt)
+  if (!NVIDIA_API_KEY) {
+    throw new Error("GEMINI_API_KEY veya NVIDIA_API_KEY ayarlanmamış")
+  }
+  return callNvidiaText(prompt)
 }
 
 function parseResponse(text: string): AnalyzeResult {
