@@ -140,7 +140,7 @@ export function MaterialsList({ materials }: { materials: StudyMaterial[] }) {
                   className="inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium hover:bg-muted transition-colors"
                 >
                   <Play className="h-4 w-4" />
-                  Quize Başla
+                  Quiz Başlat
                 </Link>
               </>
             ) : material.status === "uploaded" || material.status === "failed" ? (
