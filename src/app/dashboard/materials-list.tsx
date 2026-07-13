@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { FileText, ImageIcon, Presentation, Loader2, Sparkles, AlertCircle, CheckCircle2, Play } from "lucide-react"
+import { FileText, ImageIcon, Presentation, Loader2, Sparkles, AlertCircle, CheckCircle2, Play, Trash2, RotateCcw } from "lucide-react"
 import type { StudyMaterial } from "@/types"
 
 function getFileIcon(type: string) {
@@ -47,9 +47,13 @@ function StatusBadge({ status, errorMessage }: { status: StudyMaterial["status"]
   )
 }
 
+import { DeleteConfirmationDialog } from "@/components/delete-confirmation-dialog"
+
 export function MaterialsList({ materials }: { materials: StudyMaterial[] }) {
   const router = useRouter()
   const [analyzingId, setAnalyzingId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [confirmId, setConfirmId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const handleAnalyze = async (materialId: string) => {
@@ -82,6 +86,25 @@ export function MaterialsList({ materials }: { materials: StudyMaterial[] }) {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Soru oluşturulurken bir hata oluştu")
       setAnalyzingId(null)
+    }
+  }
+
+  const handleDelete = async (materialId: string) => {
+    setDeletingId(materialId)
+    setError(null)
+
+    try {
+      const res = await fetch(`/api/study/${materialId}`, { method: "DELETE" })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || "Materyal silinirken bir hata oluştu")
+      }
+      router.refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Materyal silinirken bir hata oluştu")
+    } finally {
+      setDeletingId(null)
+      setConfirmId(null)
     }
   }
 
@@ -143,7 +166,7 @@ export function MaterialsList({ materials }: { materials: StudyMaterial[] }) {
                   Quiz Başlat
                 </Link>
               </>
-            ) : material.status === "uploaded" || material.status === "failed" ? (
+            ) : material.status === "uploaded" || material.status === "failed" || material.status === "processing" ? (
               <button
                 onClick={() => handleAnalyze(material.id)}
                 disabled={analyzingId === material.id}
@@ -151,15 +174,40 @@ export function MaterialsList({ materials }: { materials: StudyMaterial[] }) {
               >
                 {analyzingId === material.id ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
+                ) : material.status === "processing" ? (
+                  <RotateCcw className="h-4 w-4" />
                 ) : (
                   <Sparkles className="h-4 w-4" />
                 )}
-                Soru Oluştur
+                {material.status === "processing" ? "Tekrar Dene" : "Soru Oluştur"}
               </button>
             ) : null}
+            <button
+              onClick={() => setConfirmId(material.id)}
+              disabled={deletingId === material.id || analyzingId === material.id}
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-destructive px-3 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 disabled:opacity-50 transition-colors"
+            >
+              {deletingId === material.id ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="h-4 w-4" />
+              )}
+              Sil
+            </button>
           </div>
         </div>
       ))}
+
+      <DeleteConfirmationDialog
+        open={confirmId !== null}
+        onOpenChange={(open) => !open && setConfirmId(null)}
+        title="Materyali silmek istediğine emin misin?"
+        description="Bu işlem geri alınamaz. Materyale ait tüm sorular ve quiz sonuçları da silinecektir."
+        onConfirm={() => {
+          if (confirmId) handleDelete(confirmId)
+        }}
+        isLoading={deletingId !== null}
+      />
     </div>
   )
 }

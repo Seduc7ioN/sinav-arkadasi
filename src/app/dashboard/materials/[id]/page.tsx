@@ -1,9 +1,10 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { ArrowLeft, FileText, ImageIcon, Presentation } from "lucide-react"
+import { ArrowLeft, FileText, ImageIcon, Presentation, Trash2 } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { Button } from "@/components/ui/button"
 import type { Question } from "@/types"
+import { DeleteMaterialButton } from "./delete-material-button"
 
 function getFileIcon(type: string) {
   if (type === "pdf") return <FileText className="h-5 w-5" />
@@ -69,11 +70,14 @@ export default async function MaterialDetailPage({
                 {new Date(material.created_at).toLocaleDateString("tr-TR")}
               </p>
             </div>
-            {material.status === "completed" && questionList.length > 0 && (
-              <Link href={`/dashboard/quiz/${material.id}`}>
-                <Button>Quiz Başlat</Button>
-              </Link>
-            )}
+            <div className="flex items-center gap-2 ml-auto">
+              {material.status === "completed" && questionList.length > 0 && (
+                <Link href={`/dashboard/quiz/${material.id}`}>
+                  <Button>Quiz Başlat</Button>
+                </Link>
+              )}
+              <DeleteMaterialButton materialId={material.id} />
+            </div>
           </div>
 
           {material.status !== "completed" && (
