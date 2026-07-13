@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server"
 import { createServiceClient } from "@/lib/supabase/service-client"
-
-export const runtime = "nodejs"
 import { getUserFromRequest } from "@/lib/supabase/request-auth"
 import { analyzeMaterial } from "@/lib/ai/study-analyzer"
 import { corsResponse, handleCorsPreflight } from "../cors"
 
+export const runtime = "nodejs"
 export const maxDuration = 60
 
 export async function OPTIONS(request: Request) {
@@ -14,7 +13,9 @@ export async function OPTIONS(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    console.log("[analyze] request received")
     const user = await getUserFromRequest(request)
+    console.log("[analyze] user:", user?.id ?? "none")
     const supabase = createServiceClient()
 
     if (!user) {
@@ -22,6 +23,7 @@ export async function POST(request: Request) {
     }
 
     const { materialId } = await request.json()
+    console.log("[analyze] materialId:", materialId)
 
     if (!materialId) {
       return corsResponse(
@@ -37,6 +39,8 @@ export async function POST(request: Request) {
       .eq("id", materialId)
       .eq("user_id", user.id)
       .single()
+
+    console.log("[analyze] material:", material?.id ?? "not found")
 
     if (!material) {
       return corsResponse(
@@ -66,10 +70,12 @@ export async function POST(request: Request) {
       .eq("id", materialId)
 
     try {
+      console.log("[analyze] starting AI analysis for", material.storage_path)
       const result = await analyzeMaterial(
         material.storage_path,
         material.file_type
       )
+      console.log("[analyze] AI returned", result.questions.length, "questions")
 
       const questions = result.questions.map((q) => ({
         material_id: materialId,
@@ -108,6 +114,8 @@ export async function POST(request: Request) {
           ? analysisError.message
           : "Analiz başarısız"
 
+      console.error("[analyze] analysis error:", message)
+
       await supabase
         .from("study_materials")
         .update({ status: "failed", error_message: message })
@@ -117,6 +125,7 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : "Bilinmeyen hata"
+    console.error("[analyze] top-level error:", message)
     return corsResponse({ error: message }, { status: 500 }, request)
   }
 }

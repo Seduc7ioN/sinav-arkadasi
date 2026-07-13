@@ -63,10 +63,19 @@ export function MaterialsList({ materials }: { materials: StudyMaterial[] }) {
         body: JSON.stringify({ materialId }),
       })
 
-      const data = await res.json()
+      const rawBody = await res.text()
+      let data: { error?: string } = {}
+      try {
+        data = JSON.parse(rawBody)
+      } catch {
+        // JSON değilse ham yanıtı göster
+      }
 
       if (!res.ok) {
-        throw new Error(data.error || "Soru oluşturma başarısız")
+        const message =
+          data.error ||
+          (rawBody ? rawBody.slice(0, 300) : `HTTP ${res.status}`)
+        throw new Error(message)
       }
 
       router.push(`/dashboard/materials/${materialId}`)

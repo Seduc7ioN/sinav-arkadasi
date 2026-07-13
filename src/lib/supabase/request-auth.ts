@@ -1,11 +1,15 @@
 import { createClient } from "./server"
 
 export async function getUserFromRequest(request: Request) {
-  // Onceki supabase client'ini cookie'den oku
-  const cookieClient = await createClient()
-  const { data: cookieUser } = await cookieClient.auth.getUser()
-  if (cookieUser.user) {
-    return cookieUser.user
+  try {
+    // Önce cookie'den oku
+    const cookieClient = await createClient()
+    const { data: cookieUser } = await cookieClient.auth.getUser()
+    if (cookieUser.user) {
+      return cookieUser.user
+    }
+  } catch (err) {
+    console.error("[request-auth] cookie auth error:", err instanceof Error ? err.message : err)
   }
 
   // Yoksa Authorization: Bearer header'indan oku
@@ -16,19 +20,24 @@ export async function getUserFromRequest(request: Request) {
     return null
   }
 
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/user`,
-    {
-      headers: {
-        apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  )
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/user`,
+      {
+        headers: {
+          apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
 
-  if (!response.ok) {
+    if (!response.ok) {
+      return null
+    }
+
+    return await response.json()
+  } catch (err) {
+    console.error("[request-auth] bearer auth error:", err instanceof Error ? err.message : err)
     return null
   }
-
-  return await response.json()
 }
