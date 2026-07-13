@@ -13,7 +13,7 @@ interface AnalyzeResult {
 }
 
 const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY
-const NVIDIA_MODEL = process.env.NVIDIA_MODEL || "nvidia/nemotron-nano-9b-v2"
+const NVIDIA_MODEL = process.env.NVIDIA_MODEL || "nvidia/nvidia-nemotron-nano-9b-v2"
 const NVIDIA_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY
