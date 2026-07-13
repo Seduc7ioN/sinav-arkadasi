@@ -12,7 +12,7 @@ export async function POST(request: Request) {
   try {
     const user = await getUserFromRequest(request)
     if (!user) {
-      return corsResponse({ error: "Unauthorized" }, { status: 401 }, request)
+      return corsResponse({ error: "Yetkisiz" }, { status: 401 }, request)
     }
 
     const { materialId } = await request.json()

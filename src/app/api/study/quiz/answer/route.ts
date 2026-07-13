@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server"
 import { createServiceClient } from "@/lib/supabase/service-client"
 import { getUserFromRequest } from "@/lib/supabase/request-auth"
 import { corsResponse, handleCorsPreflight } from "../../cors"
@@ -13,11 +12,16 @@ export async function POST(request: Request) {
   try {
     const user = await getUserFromRequest(request)
     if (!user) {
-      return corsResponse({ error: "Unauthorized" }, { status: 401 }, request)
+      return corsResponse({ error: "Yetkisiz" }, { status: 401 }, request)
     }
 
     const { sessionId, questionId, selectedOption } = await request.json()
-    if (!sessionId || !questionId || typeof selectedOption !== "number") {
+    if (
+      !sessionId ||
+      !questionId ||
+      typeof selectedOption !== "number" ||
+      selectedOption < 0
+    ) {
       return corsResponse(
         { error: "sessionId, questionId ve selectedOption gerekli" },
         { status: 400 },
@@ -54,6 +58,15 @@ export async function POST(request: Request) {
       return corsResponse(
         { error: "Soru bulunamadı" },
         { status: 404 },
+        request
+      )
+    }
+
+    const options = Array.isArray(question.options) ? question.options : []
+    if (selectedOption >= options.length) {
+      return corsResponse(
+        { error: "Geçersiz seçenek" },
+        { status: 400 },
         request
       )
     }

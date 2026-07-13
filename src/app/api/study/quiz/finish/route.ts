@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server"
 import { createServiceClient } from "@/lib/supabase/service-client"
 import { getUserFromRequest } from "@/lib/supabase/request-auth"
 import { corsResponse, handleCorsPreflight } from "../../cors"
@@ -13,7 +12,7 @@ export async function POST(request: Request) {
   try {
     const user = await getUserFromRequest(request)
     if (!user) {
-      return corsResponse({ error: "Unauthorized" }, { status: 401 }, request)
+      return corsResponse({ error: "Yetkisiz" }, { status: 401 }, request)
     }
 
     const { sessionId } = await request.json()

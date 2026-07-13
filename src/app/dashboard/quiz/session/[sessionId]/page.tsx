@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { ArrowLeft, CheckCircle2, XCircle, HelpCircle } from "lucide-react"
+import { ArrowLeft, CheckCircle2, XCircle } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 
 export default async function QuizResultPage({
@@ -116,7 +116,7 @@ export default async function QuizResultPage({
                   </div>
 
                   <ul className="space-y-2 mb-3">
-                    {question.options.map((option: string, optIdx: number) => {
+                    {(Array.isArray(question.options) ? question.options : []).map((option: string, optIdx: number) => {
                       const isCorrect = optIdx === question.correct_option
                       const isSelected = optIdx === answer.selected_option
                       return (

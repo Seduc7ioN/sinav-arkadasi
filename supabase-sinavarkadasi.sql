@@ -71,6 +71,8 @@ CREATE TABLE quiz_answers (
 );
 
 CREATE INDEX idx_quiz_answers_session_id ON quiz_answers(session_id);
+CREATE UNIQUE INDEX idx_quiz_answers_session_question
+  ON quiz_answers(session_id, question_id);
 
 -- ============================================
 -- ROW LEVEL SECURITY
