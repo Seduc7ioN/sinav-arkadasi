@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { ArrowLeft, FileText, ImageIcon, Presentation } from "lucide-react"
+import { ArrowLeft, FileText, ImageIcon, Play, Presentation } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { Button } from "@/components/ui/button"
 import type { Question } from "@/types"
@@ -69,6 +69,15 @@ export default async function MaterialDetailPage({
                 {new Date(material.created_at).toLocaleDateString("tr-TR")}
               </p>
             </div>
+            {material.status === "completed" && questionList.length > 0 && (
+              <Link
+                href={`/dashboard/quiz/${material.id}`}
+                className="ml-auto inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+              >
+                <Play className="h-4 w-4" />
+                Quize Başla
+              </Link>
+            )}
           </div>
 
           {material.status !== "completed" && (
