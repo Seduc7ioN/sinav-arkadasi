@@ -14,30 +14,29 @@ interface AnalyzeResult {
 
 const USE_NVIDIA = !!process.env.NVIDIA_API_KEY
 const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY
-const NVIDIA_MODEL = process.env.NVIDIA_MODEL || "meta/llama-3.2-90b-vision-instruct"
+const NVIDIA_MODEL = process.env.NVIDIA_MODEL || "meta/llama-3.2-11b-vision-instruct"
 const NVIDIA_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY
 const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.0-flash"
 const GEMINI_BASE_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}`
 
-const ANALYSIS_PROMPT = `Sen bir eğitim asistanısın. Yüklenen belge/fotoğraftaki tüm metni incele.
-Ardından şu adımları uygula:
+const ANALYSIS_PROMPT = `Sen bir eğitim asistanısın. Yüklenen belge/fotoğraftaki metni hızlıca incele.
 
-1. Metindeki en önemli kavramları, tanımları ve bilgileri belirle
-2. Bu bilgilerden 10 adet çoktan seçmeli sınav sorusu oluştur
-3. Her soru için 4 seçenek (A, B, C, D) hazırla
-4. Doğru cevabı ve neden doğru olduğunu açıklayan kısa bir açıklama ekle
-5. Her soruya kolay/orta/zor seviyesi ata
+Görevin:
+- En önemli 5 bilgi/kavramdan 5 adet çoktan seçmeli soru üret.
+- Her soruda 4 seçenek (A, B, C, D) olsun.
+- Doğru cevabı belirt ve 1-2 cümleyle kısa açıkla.
+- Her soruya kolay/orta/zor seviyesi ata.
 
-Yanıtını AŞAĞIDAKİ JSON formatında ver, başka hiçbir şey yazma:
+Yanıtını SADECE aşağıdaki JSON formatında ver, başka hiçbir şey yazma:
 {
   "questions": [
     {
-      "question_text": "Soru metni",
-      "options": ["A) Seçenek bir", "B) Seçenek iki", "C) Seçenek üç", "D) Seçenek dört"],
+      "question_text": "...",
+      "options": ["...", "...", "...", "..."],
       "correct_option": 0,
-      "explanation": "Doğru cevabın açıklaması",
+      "explanation": "...",
       "difficulty": "medium"
     }
   ]
@@ -78,9 +77,9 @@ async function callNvidiaVision(base64Image: string, prompt: string): Promise<st
           ],
         },
       ],
-      max_tokens: 2048,
-      temperature: 0.7,
-      top_p: 1,
+      max_tokens: 1200,
+      temperature: 0.5,
+      top_p: 0.9,
       stream: false,
     }),
   })
@@ -111,9 +110,9 @@ async function callNvidiaText(prompt: string): Promise<string> {
     body: JSON.stringify({
       model: NVIDIA_MODEL,
       messages: [{ role: "user", content: prompt }],
-      max_tokens: 2048,
-      temperature: 0.7,
-      top_p: 1,
+      max_tokens: 1200,
+      temperature: 0.5,
+      top_p: 0.9,
       stream: false,
     }),
   })
