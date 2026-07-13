@@ -42,3 +42,6 @@ next-env.d.ts
 
 # brainstorming / visual companion
 .superpowers/
+
+# isolated workspaces
+.worktrees/
