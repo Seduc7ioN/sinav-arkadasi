@@ -30,11 +30,12 @@ export async function GET(
       .select("*")
       .eq("id", id)
       .eq("user_id", user.id)
+      .eq("status", "completed")
       .single()
 
     if (!session) {
       return corsResponse(
-        { error: "Oturum bulunamadı" },
+        { error: "Oturum bulunamadı veya henüz tamamlanmamış" },
         { status: 404 },
         request
       )
