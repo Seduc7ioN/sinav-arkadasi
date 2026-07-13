@@ -55,6 +55,9 @@ CREATE TABLE quiz_sessions (
 
 CREATE INDEX idx_quiz_sessions_user_id ON quiz_sessions(user_id);
 CREATE INDEX idx_quiz_sessions_material_id ON quiz_sessions(material_id);
+CREATE UNIQUE INDEX idx_quiz_sessions_one_active_per_material
+  ON quiz_sessions(user_id, material_id)
+  WHERE status = 'in_progress';
 
 -- ============================================
 -- QUIZ ANSWERS

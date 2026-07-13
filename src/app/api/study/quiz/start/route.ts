@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server"
 import { createServiceClient } from "@/lib/supabase/service-client"
 import { getUserFromRequest } from "@/lib/supabase/request-auth"
 import { corsResponse, handleCorsPreflight } from "../../cors"
@@ -17,8 +16,12 @@ export async function POST(request: Request) {
     }
 
     const { materialId } = await request.json()
-    if (!materialId) {
-      return corsResponse({ error: "materialId gerekli" }, { status: 400 }, request)
+    if (typeof materialId !== "string" || materialId.trim().length === 0) {
+      return corsResponse(
+        { error: "materialId gerekli" },
+        { status: 400 },
+        request
+      )
     }
 
     const supabase = createServiceClient()
@@ -81,8 +84,30 @@ export async function POST(request: Request) {
       .select("*")
       .single()
 
-    if (sessionError || !session) {
-      throw new Error(sessionError?.message || "Oturum oluşturulamadı")
+    if (sessionError) {
+      if (sessionError.code === "23505") {
+        const { data: existingSessionOnConflict } = await supabase
+          .from("quiz_sessions")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("material_id", materialId)
+          .eq("status", "in_progress")
+          .maybeSingle()
+
+        if (existingSessionOnConflict) {
+          return corsResponse(
+            { session: existingSessionOnConflict, questions: questions || [] },
+            {},
+            request
+          )
+        }
+      }
+
+      throw new Error(sessionError.message)
+    }
+
+    if (!session) {
+      throw new Error("Oturum oluşturulamadı")
     }
 
     return corsResponse(
