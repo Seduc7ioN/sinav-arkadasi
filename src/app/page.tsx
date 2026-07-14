@@ -115,19 +115,19 @@ export default function LandingPage() {
               <h4 className="font-medium text-sm mb-3">Yasal</h4>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <a href="/kvkk" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href="/kvkk" className="text-muted-foreground hover:text-foreground transition-colors">
                     KVKK Aydınlatma Metni
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="/kvkk/cerez-politikasi" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href="/kvkk/cerez-politikasi" className="text-muted-foreground hover:text-foreground transition-colors">
                     Çerez Politikası
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="/kvkk/veri-sahibi" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href="/kvkk/veri-sahibi" className="text-muted-foreground hover:text-foreground transition-colors">
                     Veri Sahibi Başvuru Formu
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>

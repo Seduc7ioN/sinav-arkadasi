@@ -85,15 +85,17 @@ export default async function DashboardPage() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-3 mb-12">
-            <Link href="#materials" className="rounded-xl border p-6 hover:border-primary/50 transition-colors">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                <Upload className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="font-semibold text-lg mb-2">Not Yükle</h3>
-              <p className="text-sm text-muted-foreground">
-                Fotoğraf, PDF veya slaytını webden hızlıca yükle.
-              </p>
-            </Link>
+            <UploadDialog>
+              <button className="rounded-xl border p-6 text-left hover:border-primary/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                  <Upload className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="font-semibold text-lg mb-2">Not Yükle</h3>
+                <p className="text-sm text-muted-foreground">
+                  Fotoğraf, PDF veya slaytını webden hızlıca yükle.
+                </p>
+              </button>
+            </UploadDialog>
 
             <Link href="#materials" className="rounded-xl border p-6 hover:border-primary/50 transition-colors">
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">

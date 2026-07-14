@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import { Sparkles, Loader2, Mail, ArrowLeft } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 function getAuthErrorMessage(message: string) {
   const lower = message.toLowerCase()
@@ -88,14 +89,10 @@ export default function ForgotPasswordPage() {
           />
         </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
-        >
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-          Sıfırlama Linki Gönder
-        </button>
+        <Button type="submit" disabled={loading} className="w-full">
+          {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4" />}
+          Sıfırlama Bağlantısı Gönder
+        </Button>
       </form>
 
       <Link

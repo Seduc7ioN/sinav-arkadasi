@@ -1,16 +1,11 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { ArrowLeft, FileText, ImageIcon, Presentation, Trash2 } from "lucide-react"
+import { ArrowLeft, Trash2 } from "lucide-react"
+import { getFileIcon } from "@/components/material-helpers"
 import { createClient } from "@/lib/supabase/server"
 import { Button } from "@/components/ui/button"
 import type { Question } from "@/types"
 import { DeleteMaterialButton } from "./delete-material-button"
-
-function getFileIcon(type: string) {
-  if (type === "pdf") return <FileText className="h-5 w-5" />
-  if (type === "ppt") return <Presentation className="h-5 w-5" />
-  return <ImageIcon className="h-5 w-5" />
-}
 
 export default async function MaterialDetailPage({
   params,
@@ -85,6 +80,28 @@ export default async function MaterialDetailPage({
               Bu materyal için henüz soru oluşturulmamış. Dashboard'dan "Soru Oluştur" butonuna tıkla.
             </div>
           )}
+
+          <div className="mb-8 rounded-xl border bg-card p-4 shadow-sm">
+            <h2 className="mb-3 text-sm font-medium text-muted-foreground">Yüklenen Dosya</h2>
+            {material.file_type === "image" ? (
+              <img
+                src={material.storage_path}
+                alt={material.title}
+                className="max-h-96 w-full rounded-lg object-contain"
+              />
+            ) : (
+              <div className="flex flex-col gap-3">
+                <p className="text-sm text-muted-foreground">
+                  {material.file_type === "pdf" ? "PDF dosyası önizlemesi" : "PPT dosyası önizlemesi"} için aşağıdaki bağlantıya tıkla.
+                </p>
+                <Button asChild variant="outline" className="w-fit">
+                  <a href={material.storage_path} target="_blank" rel="noopener noreferrer">
+                    Dosyayı Görüntüle
+                  </a>
+                </Button>
+              </div>
+            )}
+          </div>
 
           <div className="space-y-6">
             {questionList.map((question, index) => (

@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { ArrowLeft, CheckCircle2, XCircle } from "lucide-react"
+import { ArrowLeft, CheckCircle2, XCircle, RotateCcw } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/server"
 
 export default async function QuizResultPage({
@@ -41,6 +42,7 @@ export default async function QuizResultPage({
   const percentage = total > 0 ? Math.round((correctCount / total) * 100) : 0
 
   const materialTitle = (session.material as { title: string } | null)?.title || "Materyal"
+  const CIRCUMFERENCE = 2 * Math.PI * 45
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -79,7 +81,7 @@ export default async function QuizResultPage({
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="8"
-                    strokeDasharray={`${percentage * 2.83} 283`}
+                    strokeDasharray={`${(percentage / 100) * CIRCUMFERENCE} ${CIRCUMFERENCE}`}
                     className="text-primary"
                   />
                 </svg>
@@ -98,6 +100,18 @@ export default async function QuizResultPage({
                 <XCircle className="h-4 w-4" />
                 <span>{total - correctCount} Yanlış</span>
               </div>
+            </div>
+
+            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Link href={`/dashboard/quiz/${session.material_id}`}>
+                <Button>
+                  <RotateCcw className="mr-2 h-4 w-4" />
+                  Tekrar Dene
+                </Button>
+              </Link>
+              <Link href="/dashboard">
+                <Button variant="outline">Panele Dön</Button>
+              </Link>
             </div>
           </div>
 

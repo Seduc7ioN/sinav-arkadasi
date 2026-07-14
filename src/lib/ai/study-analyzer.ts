@@ -55,7 +55,7 @@ async function fetchFileBuffer(fileUrl: string): Promise<{ buffer: Buffer; mimeT
 
 async function callNvidiaVision(base64Image: string, prompt: string): Promise<string> {
   if (!NVIDIA_API_KEY) {
-    throw new Error("NVIDIA_API_KEY ayarlanmamış")
+    throw new Error("AI servisi yapılandırılmamış")
   }
 
   const response = await fetch(NVIDIA_URL, {
@@ -99,7 +99,7 @@ async function callNvidiaVision(base64Image: string, prompt: string): Promise<st
 
 async function callNvidiaText(prompt: string): Promise<string> {
   if (!NVIDIA_API_KEY) {
-    throw new Error("NVIDIA_API_KEY ayarlanmamış")
+    throw new Error("AI servisi yapılandırılmamış")
   }
 
   const response = await fetch(NVIDIA_URL, {
@@ -209,7 +209,7 @@ async function callVision(
     return callGeminiVision(imageBase64, prompt)
   }
   if (!NVIDIA_API_KEY) {
-    throw new Error("GEMINI_API_KEY veya NVIDIA_API_KEY ayarlanmamış")
+    throw new Error("AI servisi yapılandırılmamış")
   }
   const dataUrl = `data:${imageBase64.mimeType};base64,${imageBase64.data}`
   return callNvidiaVision(dataUrl, prompt)
@@ -220,7 +220,7 @@ async function callText(prompt: string): Promise<string> {
     return callGeminiText(prompt)
   }
   if (!NVIDIA_API_KEY) {
-    throw new Error("GEMINI_API_KEY veya NVIDIA_API_KEY ayarlanmamış")
+    throw new Error("AI servisi yapılandırılmamış")
   }
   return callNvidiaText(prompt)
 }
